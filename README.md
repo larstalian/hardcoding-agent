@@ -2,6 +2,8 @@
 
 This project demonstrates a Franka Panda robot arm that uses Google Gemini's vision capabilities to perform pick-and-place tasks in MuJoCo simulation. The robot captures overhead camera views, sends them to Gemini for analysis, receives trajectory plans, and executes them using PID control.
 
+![Robot Simulation](public/image1.png)
+
 ## Features
 
 - **Real Robot Model**: Uses the official Franka Emika Panda from MuJoCo Menagerie
