@@ -1,0 +1,131 @@
+<mujoco model="robot_arm_pick_place">
+  <compiler angle="radian" coordinate="local"/>
+
+  <option timestep="0.002" gravity="0 0 -9.81">
+    <flag contact="enable"/>
+  </option>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="120" elevation="-20"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512"/>
+    <texture name="texplane" type="2d" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3" width="512" height="512" mark="cross" markrgb="1 1 1"/>
+    <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
+  </asset>
+
+  <worldbody>
+    <light directional="true" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1" pos="0 0 5.0" dir="0 0 -1" castshadow="false"/>
+    <light directional="true" diffuse="0.6 0.6 0.6" specular="0.2 0.2 0.2" pos="0 0 4" dir="0 0 -1"/>
+
+    <geom name="floor" pos="0 0 0" size="2 2 0.1" type="plane" material="matplane" condim="3"/>
+
+    <!-- Robot arm base -->
+    <body name="base" pos="0 0 0.1">
+      <geom type="cylinder" size="0.08 0.05" rgba="0.3 0.3 0.3 1"/>
+      <inertial pos="0 0 0" mass="2" diaginertia="0.01 0.01 0.01"/>
+
+      <!-- Joint 1: Base rotation -->
+      <joint name="joint1" type="hinge" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="0.5"/>
+
+      <!-- Link 1 -->
+      <body name="link1" pos="0 0 0.05">
+        <geom type="capsule" fromto="0 0 0 0 0 0.3" size="0.04" rgba="0.8 0.3 0.3 1"/>
+        <inertial pos="0 0 0.15" mass="1" diaginertia="0.01 0.01 0.001"/>
+
+        <!-- Joint 2: Shoulder -->
+        <body name="link2" pos="0 0 0.3">
+          <joint name="joint2" type="hinge" pos="0 0 0" axis="0 1 0" range="-2.0 2.0" damping="0.5"/>
+          <geom type="capsule" fromto="0 0 0 0.3 0 0" size="0.035" rgba="0.3 0.8 0.3 1"/>
+          <inertial pos="0.15 0 0" mass="0.8" diaginertia="0.008 0.008 0.001"/>
+
+          <!-- Joint 3: Elbow -->
+          <body name="link3" pos="0.3 0 0">
+            <joint name="joint3" type="hinge" pos="0 0 0" axis="0 1 0" range="-2.5 2.5" damping="0.3"/>
+            <geom type="capsule" fromto="0 0 0 0.25 0 0" size="0.03" rgba="0.3 0.3 0.8 1"/>
+            <inertial pos="0.125 0 0" mass="0.5" diaginertia="0.005 0.005 0.0005"/>
+
+            <!-- Wrist -->
+            <body name="wrist" pos="0.25 0 0">
+              <joint name="joint4" type="hinge" pos="0 0 0" axis="0 0 1" range="-3.14 3.14" damping="0.2"/>
+              <geom type="cylinder" size="0.025 0.03" rgba="0.5 0.5 0.5 1"/>
+              <inertial pos="0 0 0" mass="0.2" diaginertia="0.001 0.001 0.001"/>
+
+              <!-- Gripper base -->
+              <body name="gripper_base" pos="0 0 0">
+                <geom type="box" size="0.03 0.02 0.015" rgba="0.2 0.2 0.2 1"/>
+                <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001 0.0001 0.0001"/>
+
+                <!-- Left finger -->
+                <body name="left_finger" pos="0.02 0.015 0">
+                  <joint name="gripper_left" type="slide" axis="0 1 0" range="0 0.04" damping="0.1"/>
+                  <geom type="box" size="0.01 0.008 0.04" pos="0 0 -0.035" rgba="0.9 0.9 0.9 1"/>
+                  <inertial pos="0 0 -0.035" mass="0.02" diaginertia="0.00001 0.00001 0.00001"/>
+                </body>
+
+                <!-- Right finger -->
+                <body name="right_finger" pos="0.02 -0.015 0">
+                  <joint name="gripper_right" type="slide" axis="0 -1 0" range="0 0.04" damping="0.1"/>
+                  <geom type="box" size="0.01 0.008 0.04" pos="0 0 -0.035" rgba="0.9 0.9 0.9 1"/>
+                  <inertial pos="0 0 -0.035" mass="0.02" diaginertia="0.00001 0.00001 0.00001"/>
+                </body>
+
+                <!-- Camera mounted on gripper -->
+                <camera name="gripper_cam" pos="0.05 0 0" quat="0.707 0 0 0.707" fovy="60"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- Objects to pick -->
+    <body name="red_cube" pos="0.4 0.3 0.125">
+      <freejoint/>
+      <geom name="red_cube_geom" type="box" size="0.025 0.025 0.025" rgba="1 0.2 0.2 1" mass="0.05" condim="4" friction="1 0.005 0.0001"/>
+      <inertial pos="0 0 0" mass="0.05" diaginertia="0.00004 0.00004 0.00004"/>
+    </body>
+
+    <body name="blue_cube" pos="-0.3 0.35 0.125">
+      <freejoint/>
+      <geom name="blue_cube_geom" type="box" size="0.025 0.025 0.025" rgba="0.2 0.2 1 1" mass="0.05" condim="4" friction="1 0.005 0.0001"/>
+      <inertial pos="0 0 0" mass="0.05" diaginertia="0.00004 0.00004 0.00004"/>
+    </body>
+
+    <body name="green_cylinder" pos="0.2 -0.3 0.13">
+      <freejoint/>
+      <geom name="green_cyl_geom" type="cylinder" size="0.02 0.03" rgba="0.2 1 0.2 1" mass="0.05" condim="4" friction="1 0.005 0.0001"/>
+      <inertial pos="0 0 0" mass="0.05" diaginertia="0.00003 0.00003 0.00002"/>
+    </body>
+
+    <!-- Target zone -->
+    <geom name="target_zone" type="cylinder" size="0.1 0.005" pos="-0.4 -0.4 0.105" rgba="0.2 0.8 0.2 0.3"/>
+
+    <!-- External camera for overview -->
+    <camera name="overview_cam" pos="1.2 -0.8 1.0" xyaxes="0.8 1.0 0 -0.3 0.24 1.0" fovy="45"/>
+  </worldbody>
+
+  <actuator>
+    <!-- Position servos for arm joints -->
+    <position name="act1" joint="joint1" kp="50" ctrlrange="-3.14 3.14"/>
+    <position name="act2" joint="joint2" kp="50" ctrlrange="-2.0 2.0"/>
+    <position name="act3" joint="joint3" kp="50" ctrlrange="-2.5 2.5"/>
+    <position name="act4" joint="joint4" kp="30" ctrlrange="-3.14 3.14"/>
+    <position name="act_grip_l" joint="gripper_left" kp="20" ctrlrange="0 0.04"/>
+    <position name="act_grip_r" joint="gripper_right" kp="20" ctrlrange="0 0.04"/>
+  </actuator>
+
+  <sensor>
+    <jointpos name="joint1_pos" joint="joint1"/>
+    <jointpos name="joint2_pos" joint="joint2"/>
+    <jointpos name="joint3_pos" joint="joint3"/>
+    <jointpos name="joint4_pos" joint="joint4"/>
+    <jointvel name="joint1_vel" joint="joint1"/>
+    <jointvel name="joint2_vel" joint="joint2"/>
+    <jointvel name="joint3_vel" joint="joint3"/>
+    <jointvel name="joint4_vel" joint="joint4"/>
+  </sensor>
+</mujoco>
